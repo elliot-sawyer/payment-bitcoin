@@ -1,6 +1,5 @@
-payment-bitcoin
-===============
-# SilverStripe Payment Bitcoin Module
+SilverStripe Payment Bitcoin Module
+===================================
 
 ## Maintainer Contacts
 * [Elliot Sawyer](https://github.com/silverstripe-elliot)
