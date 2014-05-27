@@ -21,9 +21,9 @@ As of May 18 2014, it is very experimental and insecure, and should not be used 
 2. Add one new constant to your _ss_environment.php or mysite/_config.php file:
     define('BITCOIN_COLDSTORAGE', 'your-bitcoin-cold-storage-address')
   In addition, SS_DEFAULT_ADMIN_EMAIL and SS_SEND_ALL_EMAILS_TO constants must be set
-3. Visit yoursite.com/dev/build?flush=1 to rebuild the database.
-4. Setup some products in Swipestripe
-5. Enable bitcoin payment method in your payment.yaml file (as shown below)
+3. Enable bitcoin payment method in your payment.yaml file (as shown below)
+4. Visit yoursite.com/dev/build?flush=1 to rebuild the database.
+5. Setup some products in Swipestripe
 6. Fill up your shopping cart and choose "Bitcoin" as payment method and submit.
 7. You will see payment instructions along with a QR code.
 
@@ -38,9 +38,9 @@ PaymentGateway:
 PaymentProcessor:
   supported_methods:
     dev:
-      - 'BitcoinGateway_Express'
+      - 'BitcoinPaymentProcessor'
     live:
-      - 'BitcoinGateway_Express'
+      - 'BitcoinPaymentProcessor'
 ```
 
 ## Notes

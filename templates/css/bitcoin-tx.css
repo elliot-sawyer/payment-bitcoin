@@ -1,0 +1,27 @@
+.bitcoin-payment {
+	width: 370px;
+}
+.bitcoin-payment .demo-warning-banner {
+	background-color: #FCC;
+	color: #F00;
+	margin: 10px 0px;
+	padding: 10px;
+	width: 100%;
+
+}
+.bitcoin-payment .qr , .bitcoin-payment .instructions {
+	width: 49%;
+}
+
+.bitcoin-payment .instructions p{
+	font-size: 15px;
+	line-height: 1.5em;
+}
+
+.bitcoin-payment .float-left {
+	float: left;	
+}
+
+.bitcoin-payment .float-right {
+	float: right;
+}

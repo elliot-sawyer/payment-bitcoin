@@ -2,7 +2,7 @@ name: BitcoinPayment
 ---
 
 PaymentFactory:
-  BitcoinPaymentGateway:
+  BitcoinPaymentProcessor:
     title: 'Bitcoin'
     processor: 'BitcoinPaymentProcessor'
     gateway_classes:
@@ -10,7 +10,7 @@ PaymentFactory:
       dev: 'BitcoinPaymentGateway'
     model: 'BitcoinPayment'
 
-BitcoinPaymentGateway:
+BitcoinPaymentProcessor:
   live:
     endpoint:
       'https://blockchain.info/api/receive'

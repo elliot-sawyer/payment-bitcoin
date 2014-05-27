@@ -4,49 +4,111 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 
 	private static $allowed_actions = array(
 		'capture',
+		'confirm',
 		'complete'
 	);
+
+	private $blockchainPaymentData = [];
 
 	//TODO all the info required to complete payment is here. Need to play nicely with Swipestripe ordering system
 	public function capture($data) {
 
 		parent::capture($data);
 
-		$paymentData = $this->getPaymentData($data);
-		echo sprintf("Payment address: %s
-			<br/>
-			<a href=\"%s\">Pay</a>
-			<br/>
-			<div><img src=\"%s\" /></div>", 
-				$paymentData['payment_address'],
-				$paymentData['payment_uri'],
-				$paymentData['qr']->getAbsoluteURL()
-			);
-
-		if($paymentData) {
-			debug::dump([
-				'<h2>debugging data</h2>',
-				$paymentData
-			]);die();
-			// $this->payment->PaymentAddress = $paymentData['payment_address'];
-			// $this->payment->DestinationAddress = $paymentData['destination_address'];
-			// $this->payment->SecretToken = $paymentData['tokenSecret'];
-			// $this->payment->FeePercent = $paymentData['payment_feepercent'];
-			// $this->payment->PaymentURI = $paymentData['payment_uri'];
-			// $this->payment->QRID = $paymentData['qr']->ID;
-			// $this->payment->BlockchainURL = $paymentData['verification_address'];
-			// $this->payment->CallbackForBlockchain = urldecode($paymentData['callback']);
-		} else {
-//			$this->payment->Status = 'Failed';
-		}
+		//Redirect to a form that the customer can submit
+		$confirmURL = Director::absoluteURL(Controller::join_links(
+			$this->link(),
+			'confirm',
+			$this->methodName,
+			$this->payment->ID,
+			'?ref=' . $data['Reference']
+		));
 		
+		Controller::curr()->redirect($confirmURL);
+		return;
 	}
+
+
+	public function confirm($request) {
+
+		Requirements::css("payment-bitcoin/templates/css/bitcoin-tx.css");
+
+		// Reconstruct the payment object
+		$this->payment = BitcoinPayment::get()->byID($request->param('OtherID'));
+
+		// Reconstruct the gateway object
+		$methodName = $request->param('ID');
+		$this->gateway = PaymentFactory::get_gateway($methodName);
+		
+		$config = Config::inst()->get('BitcoinPaymentGateway', PaymentGateway::get_environment());
+		
+		$returnURL = Director::absoluteURL(Controller::join_links(
+			$this->link(),
+			'complete',
+			$methodName,
+			$this->payment->ID
+		));
+		
+		$cancelURL = Director::absoluteURL(Controller::join_links(
+			$this->link(),
+			'cancel',
+			$methodName,
+			$this->payment->ID
+		));
+		
+		$ref = $request->getVar('ref');
+
+
+		$payload = $this->getPaymentData();
+		$this->payment->update($payload);
+
+		$content = $this->customise(array(
+			'Payment' => $this->payment
+		))->renderWith('BitcoinConfirmation');
+		
+		return $this->customise(array(
+			'Content' => $content,
+		))->renderWith('Page');
+	}
+	
+
 
 	public function complete($request) {
-		debug::dump([__METHOD__,$request]);die();
+		
+		SS_Log::log(new Exception(print_r($request, true)), SS_Log::NOTICE);
+		
+		// Reconstruct the payment object
+		$this->payment = Payment::get()->byID($request->param('OtherID'));
+
+		// Reconstruct the gateway object
+		$methodName = $request->param('ID');
+		$this->gateway = PaymentFactory::get_gateway($methodName);
+
+		// Query the gateway for the payment result
+		$result = $this->gateway->getResponse($request);
+		$this->payment->updateStatus($result);
+
+		// Do redirection
+		$this->doRedirect();
+	}
+	
+	public function cancel($request) {
+		// Reconstruct the payment object
+		$this->payment = Payment::get()->byID($request->param('OtherID'));
+
+		// Reconstruct the gateway object
+		$methodName = $request->param('ID');
+		$this->gateway = PaymentFactory::get_gateway($methodName);
+
+		// Query the gateway for the payment result
+		// $result = $this->gateway->getResponse($request);
+		$this->payment->updateStatus(new PaymentGateway_Failure(null, 'Payment was cancelled.'));
+
+		// Do redirection
+		$this->doRedirect();
 	}
 
-	private function getPaymentData($FormData) {
+	private function getPaymentData() {
 		$tokenSecret = md5(json_encode([$this->payment, microtime()]));
 		$callback_url = sprintf("%s/BitcoinPaymentProcessor_Controller/callback?OrderID=%s&TokenSecret=%s",
 			Director::protocolAndHost(),
@@ -63,16 +125,16 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 		$blockchain = $svc->request('/receive');
 		$response = json_decode($blockchain->getBody());
 		if($response) {
-			$qr = $this->QRCode($response->input_address, $FormData['Amount']);
+			$qr = $this->QRCode($response->input_address, $this->payment->Amount->Amount);
 			return [
-				'payment_address' => $response->input_address,
-				'destination_address' => $response->destination,
-				'payment_feepercent' => $response->fee_percent,
-				'payment_uri' => $this->BitcoinURI($response->input_address, $FormData['Amount']),
-				'verification_address' => $this->BlockchainURL($response->input_address),
-				'qr' => $qr,
-				'callback' => $callback_url,
-				'tokenSecret' => $tokenSecret
+				'PaymentAddress' => $response->input_address,
+				'DestinationAddress' => $response->destination,
+				'FeePercent' => $response->fee_percent,
+				'PaymentURI' => $this->BitcoinURI($response->input_address, $this->payment->Amount->Amount),
+				'BlockchainURL' => $this->BlockchainURL($response->input_address),
+				'QRID' => $qr->ID,
+				'CallbackForBlockchain' => $callback_url,
+				'Token' => $tokenSecret
 			];			
 		}
 		return [];
