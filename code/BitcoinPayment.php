@@ -15,6 +15,10 @@ class BitcoinPayment extends Payment {
 		'QR' => 'Image'
 	);
 
+	public function populateDefaults() {
+		DB::requireField("Payment", "AmountAmount", "Decimal(19,8)");
+	}
+
 	//Security check: avoid MITM attacks. Check cold storage address against return data from Blockchain (in case it's compromised)
 	// public function onBeforeWrite() {
 	// 	parent::onBeforeWrite();
