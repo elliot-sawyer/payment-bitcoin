@@ -17,3 +17,7 @@ BitcoinPaymentProcessor:
   dev:
     endpoint:
       'https://blockchain.info/api/receive'
+
+Money:
+  composite_db:
+    Amount: 'Decimal(19,8)'
