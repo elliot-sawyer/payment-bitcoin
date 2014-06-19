@@ -11,7 +11,6 @@ class BitcoinPrice extends Price {
 
 	public function __construct() {
 		parent::__construct();
-		debug::dump(self::config()->composite_db);die();
 		if(defined('BITCOIN_CURRENCY_PRECISION')) {
 			$this->precision = BITCOIN_CURRENCY_PRECISION;
 		}
