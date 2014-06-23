@@ -31,9 +31,6 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 
 
 	public function confirm($request) {
-
-		Requirements::css("payment-bitcoin/templates/css/bitcoin-tx.css");
-
 		// Reconstruct the payment object
 		$payload = array();
 		$this->payment = BitcoinPayment::get()->byID($request->param('OtherID'));
@@ -66,14 +63,19 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 
 		
 		$this->payment->update($payload)->write();
+		$this->payment->updateStatus(new PaymentGateway_Incomplete());
 
-		$content = $this->customise(array(
-			'Payment' => $this->payment
-		))->renderWith('BitcoinConfirmation');
+		// $content = $this->customise(array(
+		// 	'Payment' => $this->payment
+		// ))->renderWith('BitcoinConfirmation');
 		
-		return $this->customise(array(
-			'Content' => $content,
-		))->renderWith('Page');
+		// return $this->customise(array(
+		// 	'Content' => $content,
+		// ))->renderWith('Page');
+		//Example URL: http://1.2.3.4/BitcoinPaymentProcessor/confirm/BitcoinPaymentProcessor/8?ref=38
+
+		// Do redirection
+		$this->doRedirect();
 	}
 	
 
@@ -160,6 +162,7 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 						//..otherwise, we're done!
 						} else {
 
+							$payment->updateStatus(new PaymentGateway_Success());
 							// $subject = 'bitcoin transaction confirmed';
 							// $message =  'confirmations: '.$this->request->getVar('confirmations') 
 							// 	.'<br/>value: '.$this->request->getVar('value')
