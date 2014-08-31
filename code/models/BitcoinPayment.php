@@ -9,7 +9,7 @@ class BitcoinPayment extends Payment {
 		'PaymentAddress' => 'VarChar(34)',
 		'DestinationAddress' => 'VarChar(34)',
 		'FeePercent' => 'Double',
-		'PaymentURI' => 'VarChar(50)',
+		'PaymentURI' => 'VarChar(80)',
 		'BlockchainURL' => 'Text',
 		'CallbackForBlockchain' => 'Text'
 	);
