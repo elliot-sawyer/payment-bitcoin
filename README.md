@@ -47,3 +47,7 @@ PaymentProcessor:
 * The module displays a payment address, along with a BitcoinURI link and QR Code for app wallets hosted on your computer or a smartphone.
 * The module needs to be running on a server with a web-accessible address if you want to receive actual transaction info back from blockchain.info. However, it will still accept a non-public callback (though it obviously cannot send data to it).
 * The callback URL, if reached, will email the response to the defined server admin one time and return the expected "*ok*" to prevent repeated callbacks.
+* 
+##To do
+* Daemon mode: use query bitcoind instead of blockchain.info
+* Extension for Money.php database changes
