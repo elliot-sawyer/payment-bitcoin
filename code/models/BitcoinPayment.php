@@ -2,7 +2,7 @@
 
 class BitcoinPayment extends Payment { 
 
-	public static $satoshi = 100000000;
+	private static $satoshi = 100000000;
 	
 	static $db = array(
 		'SecretToken' => 'Varchar',
