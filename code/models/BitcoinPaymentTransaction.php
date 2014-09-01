@@ -11,8 +11,4 @@ class BitcoinPaymentTransaction extends DataObject {
 	static $has_one = array(
 		'BitcoinPayment' => 'BitcoinPayment'
 	);
-
-	public function BTCFromSatoshi() {
-		return $this->Satoshi / self::satoshi;
-	}
 }
