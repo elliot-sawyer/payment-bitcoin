@@ -22,6 +22,11 @@ class BitcoinPayment extends Payment {
 		'Transactions' => 'BitcoinPaymentTransaction'
 	);
 
+	/**
+	 * Show balance of transactions whose confirmation count 
+	 * 		exceed BITCOIN_CONFIRMATIONS_THRESHOLD
+	 * @return  float
+	 */
 	public function ConfirmedBalance() {
 		return $this->Transactions()
 			->exclude("ConfirmationCount:LessThan", BITCOIN_CONFIRMATIONS_THRESHOLD)
@@ -29,6 +34,10 @@ class BitcoinPayment extends Payment {
 			/ self::$satoshi;
 	}
 
+	/**
+	 * Show balance of transactions whose confirmation count 
+	 * 		are less than BITCOIN_CONFIRMATIONS_THRESHOLD
+	 */
 	public function UnconfirmedBalance() {
 		return $this->Transactions()
 			->filter("ConfirmationCount:LessThan", BITCOIN_CONFIRMATIONS_THRESHOLD)
