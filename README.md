@@ -51,3 +51,6 @@ PaymentProcessor:
 ##To do
 * Daemon mode: use query bitcoind instead of blockchain.info
 * Extension for Money.php database changes
+
+## Security issues ##
+* Send an email with details to elliot@silverstripe.com. Security issues with the Silverstripe framework or CMS should be reported to security@silverstripe.com.
