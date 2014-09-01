@@ -238,7 +238,13 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 
 		$blockchain = $svc->request('/receive');
 		$response = json_decode($blockchain->getBody());
-		if($response) {
+		$validResponse = (
+			$response && 
+			BitcoinPayment::check_address($response->input_address) &&
+			BitcoinPayment::check_address($response->destination) &&
+			is_numeric($this->payment->Amount->Amount)
+		);
+		if($validResponse) {
 			$qr = $this->QRCode($response->input_address, $this->payment->Amount->Amount);
 			return [
 				'PaymentAddress' => $response->input_address,
@@ -258,20 +264,24 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 	/**
 	 * BlockchainURL get HTTP address to Bitcoin public address
 	 * @param string $address	Bitcoin public address
-	 * @return  string
+	 * @return  string 	Web address or empty string if invalid
 	 */
 	private function BlockchainURL($address) {
-		return sprintf("https://blockchain.info/address/%s", $address);
+		return BitcoinPayment::check_address($address)
+			? sprintf("https://blockchain.info/address/%s", $address)
+			: '';
 	}
 
 	/**
 	 * BitcoinURI URI handler to open local program for payment
 	 * @param string $address 	Bitcoin public address
 	 * @param float $amount
-	 * @return  string
+	 * @return  string Bitcoin URI handler or empty string if invalid
 	 */
 	private function BitcoinURI($address, $amount) {
-		return sprintf("bitcoin:%s?amount=%s", $address, $amount);
+		return BitcoinPayment::check_address($address) && is_numeric($amount)
+			? sprintf("bitcoin:%s?amount=%s", $address, $amount)
+			: '';
 	}
 
 	/**
@@ -283,24 +293,27 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 	 * 		generate this locally without using an online API
 	 */
 	private function QRCode($address, $amount) {
-		$svc = new RestfulService('https://chart.googleapis.com/');
-		$svc->setQueryString(array(
-			'chs' => '150x150',
-			'cht' => 'qr',
-			'chl' => 'bitcoin:'.$address.'?amount='.$amount,
-			'choe' => 'UTF-8'
-		));
-		$qr = $svc->request('chart');
+		if(BitcoinPayment::check_address($address) && is_numeric($amount)) {
+			$svc = new RestfulService('https://chart.googleapis.com/');
+			$svc->setQueryString(array(
+				'chs' => '150x150',
+				'cht' => 'qr',
+				'chl' => 'bitcoin:'.$address.'?amount='.$amount,
+				'choe' => 'UTF-8'
+			));
+			$qr = $svc->request('chart');
 
-		$folder = Folder::find_or_make('qrcode');
-		$imgData = array(
-			'Name' => $address.'.png',
-		);
-		$image = Image::get()->filter($imgData)->First() ?: new Image($imgData);
-		$image->setParentID($folder->ID);
-		$image->write();
-		file_put_contents($image->getFullPath(), $qr->getBody());
+			$folder = Folder::find_or_make('qrcode');
+			$imgData = array(
+				'Name' => $address.'.png',
+			);
+			$image = Image::get()->filter($imgData)->First() ?: new Image($imgData);
+			$image->setParentID($folder->ID);
+			$image->write();
+			file_put_contents($image->getFullPath(), $qr->getBody());
 
-		return $image;
+			return $image;
+		}
+		return false;
 	}
 }

@@ -44,4 +44,14 @@ class BitcoinPayment extends Payment {
 			->sum("Satoshi")
 			/ self::$satoshi;
 	}
+
+	/**
+	 * Soft check that a Bitcoin address is properly formatted
+	 *    	Does not perform checksum or determine validity
+	 * @param  [string] $address Bitcoin public address
+	 * @return [boolean]
+	 */
+	public static function check_address($address) {
+		return (bool) preg_match('/^[13]{1}[1-9ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{26,34}$/', $address);
+	}
 }
