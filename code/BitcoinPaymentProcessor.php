@@ -11,7 +11,12 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 
 	private $blockchainPaymentData = [];
 
-	//TODO all the info required to complete payment is here. Need to play nicely with Swipestripe ordering system
+	/**
+	 * capture() method invoked by Payment module
+	 * 			 redirects to a confirmation URL
+	 * @param  associative array passed into PaymentProcessor::process()
+	 * @return null
+	 */
 	public function capture($data) {
 
 		parent::capture($data);
@@ -29,7 +34,12 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 		return;
 	}
 
-
+	/**
+	 * overload confirm() method on PaymentProcessor
+	 * @param  SS_Request $request 	request object passed into function
+	 * 					redirects to order page
+	 * @return null
+	 */
 	public function confirm($request) {
 		// Reconstruct the payment object
 		$payload = array();
@@ -65,21 +75,17 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 		$this->payment->update($payload)->write();
 		$this->payment->updateStatus(new PaymentGateway_Incomplete());
 
-		// $content = $this->customise(array(
-		// 	'Payment' => $this->payment
-		// ))->renderWith('BitcoinConfirmation');
-		
-		// return $this->customise(array(
-		// 	'Content' => $content,
-		// ))->renderWith('Page');
 		//Example URL: http://1.2.3.4/BitcoinPaymentProcessor/confirm/BitcoinPaymentProcessor/8?ref=38
 
 		// Do redirection
 		$this->doRedirect();
 	}
 	
-
-
+	/**
+	 * Marks an order complete
+	 * @param  SS_Request $request
+	 * @return null
+	 */
 	public function complete($request) {
 		
 		SS_Log::log(new Exception(print_r($request, true)), SS_Log::NOTICE);
@@ -99,6 +105,11 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 		$this->doRedirect();
 	}
 	
+	/**
+	 * Cancel method - cancels a payment in progress
+	 * @param  SS_Request $request
+	 * @return  null
+	 */
 	public function cancel($request) {
 		// Reconstruct the payment object
 		$this->payment = Payment::get()->byID($request->param('OtherID'));
@@ -115,10 +126,15 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 		$this->doRedirect();
 	}
 
-	/* Callback function used by Blockchain.info to report transaction data as it occurs
-	Note: the website needs to be publically accessible to the Internet for this to work
-	Uncomment the "Email::create" statements in the else blocks to aid with debugging
-	*/
+	/**
+	 * Callback function used by Blockchain.info to report transaction data as it occurs
+	 * Note: the website needs to be publically accessible to the Internet for this to work
+	 * Uncomment the "Email::create" statements in the else blocks to aid with debugging
+	 * @return 	string 	"*ok*" if all conditions are met. Exact string tells Blockchain
+	 * 					to "hang up" and stop trying the call back.
+	 * 			null 	no output if there is an error, but messages will be emailed
+	 * 					to the site admin
+	 */
 	public function callback() {
 		//recreate the payment object
 		$payment = BitcoinPayment::get()->filter([
@@ -196,6 +212,11 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 		}
 	}
 
+	/**
+	 * Obtain payment information from Blockchain.info
+	 * @return Array  	BitcoinPayment data from Blockchain.info
+	 * 					empty array if no response from blockchain
+	 */
 	private function getPaymentData() {
 
 		//need a really random token, so we can recreate our payment object from Blockchain
@@ -233,14 +254,34 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 		return [];
 
 	}
+
+	/**
+	 * BlockchainURL get HTTP address to Bitcoin public address
+	 * @param string $address	Bitcoin public address
+	 * @return  string
+	 */
 	private function BlockchainURL($address) {
 		return sprintf("https://blockchain.info/address/%s", $address);
 	}
 
+	/**
+	 * BitcoinURI URI handler to open local program for payment
+	 * @param string $address 	Bitcoin public address
+	 * @param float $amount
+	 * @return  string
+	 */
 	private function BitcoinURI($address, $amount) {
 		return sprintf("bitcoin:%s?amount=%s", $address, $amount);
 	}
 
+	/**
+	 * QRCode obtains a QR code from Google Chart API
+	 * @param [string] $address 	Bitcoin public address
+	 * @param [float] $amount floating point amount
+	 * @return  Image 	downloaded PNG from Google Charts API
+	 * @todo Google Charts API is deprecated, we cannot rely on this 
+	 * 		generate this locally without using an online API
+	 */
 	private function QRCode($address, $amount) {
 		$svc = new RestfulService('https://chart.googleapis.com/');
 		$svc->setQueryString(array(
