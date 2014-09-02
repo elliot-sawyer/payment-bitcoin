@@ -6,7 +6,8 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 		'capture',
 		'confirm',
 		'callback',
-		'complete'
+		'complete',
+		'status'
 	);
 
 	private $blockchainPaymentData = [];
@@ -210,6 +211,27 @@ class BitcoinPaymentProcessor extends PaymentProcessor {
 			// $message = json_encode(array('Reference' => $this->request->getVar('OrderID'),'SecretToken' => $this->request->getVar('TokenSecret')));
 			// Email::create(SS_DEFAULT_ADMIN_EMAIL, SS_SEND_ALL_EMAILS_TO, $subject, $message)->send();
 		}
+	}
+
+	public function status() {
+		$this->response->addHeader("Content-Type", "application/json");
+		$json = [];
+
+		if(Director::is_ajax()) {
+			$payment = BitcoinPayment::get()->filter([
+				'Reference' => $this->request->getVar('OrderID')
+			])->First();
+
+			if($payment) {
+				$json = [
+					'ConfirmationStatus' => $payment->ConfirmationStatus(),
+					'ConfirmedBalance' => $payment->ConfirmedBalance(),
+					'UnconfirmedBalance' => $payment->UnconfirmedBalance()
+				];
+			}
+		}
+		return json_encode($json);
+
 	}
 
 	/**
