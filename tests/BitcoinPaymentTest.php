@@ -1,12 +1,8 @@
 <?php
 class BitcoinPaymentTest extends SapphireTest{
 	
-	/**
-	 * @todo PHPUnit doesn't work on my dev machine yet
-	 */
-	public testCheckAddress() {
+	public function testCheckAddress() {
 		//addresses possibly used by blockchain.info on 9/01/2014
-		/*
 		$addresses = [
 			'1NurdRAge7PNR4ULrbrpcYvc9RC4LDp9pS',
 			'15L6LhogfK5rgRoLYQQyp5Fuws657yKTiL',
@@ -37,10 +33,7 @@ class BitcoinPaymentTest extends SapphireTest{
 			'1HT2ua74tjTMFsFAeouonJbRv9JWotpagf'
 		];
 		foreach($addresses as $a) {
-			debug::dump([$a, BitcoinPayment::check_address($a) ? "TRUE" : "FALSE"]);
+			$this->assertTrue(BitcoinPayment::check_address($a));
 		}
-
-		die();
-		*/
 	}
 }
