@@ -33,10 +33,11 @@ class BitcoinPayment extends Payment {
 	 */
 	public function ConfirmedBalance() {
 		return 
-			(float) $this->Transactions()
+			number_format( $this->Transactions()
 				->exclude("ConfirmationCount:LessThan", BITCOIN_CONFIRMATIONS_THRESHOLD)
 				->sum("Satoshi")
-				/ (float) self::$satoshi;
+				/ (float) self::$satoshi
+			, 8);
 	}
 
 	/**
@@ -45,10 +46,11 @@ class BitcoinPayment extends Payment {
 	 */
 	public function UnconfirmedBalance() {
 		return 
-			(float) $this->Transactions()
+			number_format( $this->Transactions()
 				->filter("ConfirmationCount:LessThan", BITCOIN_CONFIRMATIONS_THRESHOLD)
 				->sum("Satoshi")
-				/ (float) self::$satoshi;
+				/ (float) self::$satoshi
+			, 8);
 	}
 
 	/**

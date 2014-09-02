@@ -1,4 +1,4 @@
-<div class="BitcoinPayment">
+<div class="BitcoinPayment" data-order-id="$Top.Order.ID">
 	<div class="row">
 		<div class="small-2 large-2 columns">
 			<img src="$QR.AbsoluteURL()" />
@@ -22,12 +22,14 @@
 
 			</div>
 
-			<div class="progress success round">
+			<div class="progress round">
+				<span class="meter hide" 
 				<% if $ConfirmationStatus < 10 %>
-				<span class="meter" style="width:10%">
+				style="width:10%"
 				<% else %>
-				<span class="meter" style="width:$ConfirmationStatus%">
+				style="width:$ConfirmationStatus%"
 				<% end_if %>
+				>
 				<div> $ConfirmationStatus%</div>
 				</span>
 			</div>
