@@ -4,6 +4,10 @@ class BitcoinPayment extends Payment {
 
 	private static $satoshi = 100000000;
 	
+	/**
+	 * @todo BITCOIN_CONFIRMATIONS_THRESHOLD as a DB column
+	 * @var array
+	 */
 	static $db = array(
 		'SecretToken' => 'Varchar',
 		'PaymentAddress' => 'VarChar(34)',
@@ -28,10 +32,11 @@ class BitcoinPayment extends Payment {
 	 * @return  float
 	 */
 	public function ConfirmedBalance() {
-		return $this->Transactions()
-			->exclude("ConfirmationCount:LessThan", BITCOIN_CONFIRMATIONS_THRESHOLD)
-			->sum("Satoshi")
-			/ self::$satoshi;
+		return 
+			(float) $this->Transactions()
+				->exclude("ConfirmationCount:LessThan", BITCOIN_CONFIRMATIONS_THRESHOLD)
+				->sum("Satoshi")
+				/ (float) self::$satoshi;
 	}
 
 	/**
@@ -39,10 +44,31 @@ class BitcoinPayment extends Payment {
 	 * 		are less than BITCOIN_CONFIRMATIONS_THRESHOLD
 	 */
 	public function UnconfirmedBalance() {
-		return $this->Transactions()
-			->filter("ConfirmationCount:LessThan", BITCOIN_CONFIRMATIONS_THRESHOLD)
-			->sum("Satoshi")
-			/ self::$satoshi;
+		return 
+			(float) $this->Transactions()
+				->filter("ConfirmationCount:LessThan", BITCOIN_CONFIRMATIONS_THRESHOLD)
+				->sum("Satoshi")
+				/ (float) self::$satoshi;
+	}
+
+	/**
+	 * Display confirmation status as a percentage on Order page
+	 * @return  int		confirmation status between 0 and 100 percent
+	 */
+	public function ConfirmationStatus() {
+
+		//default status
+		$status = 0;
+		if($total = $this->Transactions()->Count()) {
+			$total *= (float) BITCOIN_CONFIRMATIONS_THRESHOLD;
+
+			$remaining = (float)  $this->Transactions()->sum('ConfirmationCount');
+
+			$status = (float) ($remaining / $total);
+			$status *= 100;
+			$status = round($status);
+		}
+		return $status;
 	}
 
 	/**
