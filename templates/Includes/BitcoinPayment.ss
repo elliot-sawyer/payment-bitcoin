@@ -1,4 +1,10 @@
-<div class="BitcoinPayment" data-order-id="$Top.Order.ID">
+<div class="BitcoinPayment" data-order-id="$Top.Order.ID"
+	<% if $ConfirmationStatus = 100 %>
+		data-order-complete="true"
+	<% else %>
+		data-order-complete="false"
+	<% end_if %>
+>
 	<div class="row">
 		<div class="small-2 large-2 columns">
 			<img src="$QR.AbsoluteURL()" />
@@ -17,12 +23,19 @@
 				</div>
 
 				<div class="small-6 large-6 columns">
-					<h3 class="order-status text-center">$Status</h3>
+					<h3 class="order-status text-center">
+					
+					<% if $ConfirmationStatus = 100 %>
+						Complete!
+					<% else %>
+						$Status
+					<% end_if %>
+					</h3>
 				</div>
 
 			</div>
 
-			<div class="progress round">
+			<div class="progress round <% if $ConfirmationStatus = 100 %>success<% end_if %>">
 				<span class="meter hide" 
 				<% if $ConfirmationStatus < 10 %>
 				style="width:10%"
